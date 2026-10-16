@@ -14,6 +14,9 @@ load_dotenv()
 #set token (req file named .env configured with your token)
 token = os.getenv('DISCORD_TOKEN')
 
+#rigged the game
+Rigged_ID = 0#discord ID of someone you hate lol
+
 #init intents
 handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
 intents = discord.Intents.default()
@@ -92,60 +95,66 @@ async def reset(ctx):
 async def hit(ctx):
     if ctx.author.id in active_users:
         index = active_users.index(ctx.author.id)
-        hand = Hands[index]
-        #did you get an ace?
-        if random.randrange(0,52,1) > 48:
-            #will it kill ya?
-            if (hand + 11) > 21:
-                #yes
-                hand += 1
-            else:
-                #no
-                hand += 11
-        else:
-            #if you didn't get an ace what did you get?
-            hand += random.randrange(2,10,1)
-        #does it kill you?
-        if hand > 21:
-            #yes
-            await ctx.send(f'{hand} > 21, You lose')
+        if ctx.author.id == Rigged_ID:
+            Hands[index] = random.randint(Hands[index] + (21 - Hands[index]),(Hands[index] + (21 - Hands[index])) + 10)
+            await ctx.send(f'{Hands[index]} > 21, You lose')
             Hands.pop(index)
             active_users.remove(ctx.author.id)
         else:
-            #did you get 21?
-            if hand == 21:
+            hand = Hands[index]
+            #did you get an ace?
+            if random.randrange(0,52,1) > 48:
+                #will it kill ya?
+                if (hand + 11) > 21:
+                    #yes
+                    hand += 1
+                else:
+                    #no
+                    hand += 11
+            else:
+                #if you didn't get an ace what did you get?
+                hand += random.randrange(2,10,1)
+            #does it kill you?
+            if hand > 21:
                 #yes
-                await ctx.send(f'{hand} = 21, You win')
+                await ctx.send(f'{hand} > 21, You lose')
                 Hands.pop(index)
                 active_users.remove(ctx.author.id)
-            #no
-            Hands[index] = hand
-            await ctx.send(f'Your hand: {Hands[index]}')
-            # v same as ^ but for the dealer with additions for (VERY) basic AI
-            Dhand = Dealer_Hands[index]
-            if not Dealer_Hands[index] >= 17:
-                if random.randrange(0, 52, 1) > 48:
-                    if (Dhand + 11) > 21:
-                        Dhand += 1
-                    else:
-                        Dhand += 11
-                else:
-                    Dhand += random.randrange(2, 10, 1)
-                if Dhand > 21:
-                    await ctx.send(f'Dealer hand: {Dhand} > 21, You Win')
-                    Hands.pop(index)
-                    active_users.remove(ctx.author.id)
-                elif Dhand == 21:
-                    await ctx.send(f'Dealer hand: {Dhand} = 21, You Lose')
-                    Hands.pop(index)
-                    active_users.remove(ctx.author.id)
-                else:
-                    Dealer_Hands[index] = Dhand
-                    await ctx.send(f'Dealer Hits')
-                    await ctx.send(f'Dealer hand: {Dealer_Hands[index]}')
             else:
-                await ctx.send(f'Dealer Stands')
-                await ctx.send(f'Dealer hand: {Dealer_Hands[index]}')
+                #did you get 21?
+                if hand == 21:
+                    #yes
+                    await ctx.send(f'{hand} = 21, You win')
+                    Hands.pop(index)
+                    active_users.remove(ctx.author.id)
+                #no
+                Hands[index] = hand
+                await ctx.send(f'Your hand: {Hands[index]}')
+                # v same as ^ but for the dealer with additions for (VERY) basic AI
+                Dhand = Dealer_Hands[index]
+                if not Dealer_Hands[index] >= 17:
+                    if random.randrange(0, 52, 1) > 48:
+                        if (Dhand + 11) > 21:
+                            Dhand += 1
+                        else:
+                            Dhand += 11
+                    else:
+                        Dhand += random.randrange(2, 10, 1)
+                    if Dhand > 21:
+                        await ctx.send(f'Dealer hand: {Dhand} > 21, You Win')
+                        Hands.pop(index)
+                        active_users.remove(ctx.author.id)
+                    elif Dhand == 21:
+                        await ctx.send(f'Dealer hand: {Dhand} = 21, You Lose')
+                        Hands.pop(index)
+                        active_users.remove(ctx.author.id)
+                    else:
+                        Dealer_Hands[index] = Dhand
+                        await ctx.send(f'Dealer Hits')
+                        await ctx.send(f'Dealer hand: {Dealer_Hands[index]}')
+                else:
+                    await ctx.send(f'Dealer Stands')
+                    await ctx.send(f'Dealer hand: {Dealer_Hands[index]}')
     else:
         await ctx.send('You are not playing blackjack!, Do b!new to start')
 @bot.command()
@@ -185,5 +194,14 @@ async def stand(ctx):
                 await ctx.send(f'Dealer hand: {Dealer_Hands[index]}')
     else:
         await ctx.send('You are not playing blackjack!, Do b!new to start')
+
+@bot.command()
+async def h(ctx):
+    await ctx.send(f'h - Prints list of commands')
+    await ctx.send(f'new - Starts new game')
+    await ctx.send(f'reset - Resets game')
+    await ctx.send(f'hit - draw a card')
+    await ctx.send(f'stand - pass your turn')
+    await ctx.send(f"hand - show your hand and the dealer's hand")
 #run bot
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
