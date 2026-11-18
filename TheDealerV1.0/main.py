@@ -225,5 +225,13 @@ async def h(ctx):
     await ctx.send(f'stand - pass your turn')
     await ctx.send(f"hand - show your hand and the dealer's hand")
 
+#secret comands
+@bot.command()
+@commands.cooldown(1, 5, commands.BucketType.user)
+async def kirk(ctx):
+    await ctx.send("<:my_emoji:1560761127699349565>")
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"⏳ This command is on cooldown. Try again in {error.retry_after:.2f} seconds.", delete_after=5)
 #run bot
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
